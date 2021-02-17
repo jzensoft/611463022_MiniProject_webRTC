@@ -66,9 +66,9 @@ const App = () => {
         setStateConnect(true);
 
         // setFriendID(data)
-        if (data.type == "id") setFriendID(data.id);
-        else if (data.type == "message") onReceivedMessage(data);
-        else if (data.type == "file") onReceivedFile(data);
+        if (data.type === "id") setFriendID(data.id);
+        else if (data.type === "message") onReceivedMessage(data);
+        else if (data.type === "file") onReceivedFile(data);
       });
     });
 
@@ -82,7 +82,7 @@ const App = () => {
         .getUserMedia({ video: true, audio: true })
         .then((stream) => {
           call.answer(stream);
-          call.on("stream", stream => {
+          call.on("stream", (stream) => {
             friendVideo.current.srcObject = stream;
           });
         })
@@ -102,8 +102,8 @@ const App = () => {
     });
 
     conn.on("data", (data) => {
-      if (data.type == "message") onReceivedMessage(data);
-      else if (data.type == "file") onReceivedFile(data);
+      if (data.type === "message") onReceivedMessage(data);
+      else if (data.type === "file") onReceivedFile(data);
     });
 
     peer.on("error", (err) => {
@@ -245,16 +245,7 @@ const App = () => {
             <Alert theme="secondary" style={{ marginBottom: "0" }}>
               Friend Video {friendID ? `| Peer is ${friendID}` : ""}
             </Alert>
-            {stateConnect ? (
-              FriendVideo
-            ) : (
-              <h3
-                className="text-center"
-                style={{ marginTop: "20%", color: "#ccc" }}
-              >
-                No video yet
-              </h3>
-            )}
+            {FriendVideo}
           </Col>
         </Row>
 
@@ -467,20 +458,15 @@ const App = () => {
                     </Col>
 
                     <Col md="2">
-                      {stateButton ? (
-                        <Button
-                          size="lg"
-                          pill
-                          theme="success"
-                          onClick={startConnection}
-                        >
-                          Connect
-                        </Button>
-                      ) : (
-                        <Button size="lg" pill theme="success" disabled>
-                          Connect
-                        </Button>
-                      )}
+                      <Button
+                        size="lg"
+                        pill
+                        theme="success"
+                        disabled={stateButton ? false : true}
+                        onClick={startConnection}
+                      >
+                        Connect
+                      </Button>
                     </Col>
                   </Row>
                 </Row>
