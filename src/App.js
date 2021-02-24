@@ -39,6 +39,9 @@ const App = () => {
   let [stateCollapseChat, setStateCollapseChat] = useState(false);
   let [stateCollapseFile, setStateCollapseFile] = useState(false);
 
+  const [myAudio, setMyAudio] = useState(false);
+  const [friendAudio, setFriendAudio] = useState(false);
+
   const myVideo = useRef();
   const friendVideo = useRef();
 
@@ -69,6 +72,7 @@ const App = () => {
         if (data.type === "id") setFriendID(data.id);
         else if (data.type === "message") onReceivedMessage(data);
         else if (data.type === "file") onReceivedFile(data);
+        else if (data.type === "audio") setFriendAudio(data.state);
       });
     });
 
@@ -104,6 +108,7 @@ const App = () => {
     conn.on("data", (data) => {
       if (data.type === "message") onReceivedMessage(data);
       else if (data.type === "file") onReceivedFile(data);
+      else if (data.type === "audio") setFriendAudio(data.state);
     });
 
     peer.on("error", (err) => {
@@ -154,7 +159,7 @@ const App = () => {
     MyVideo = (
       <video
         playsInline
-        muted
+        muted={myAudio ? true : false}
         ref={myVideo}
         autoPlay
         style={{ maxWidth: "100%" }}
@@ -168,7 +173,7 @@ const App = () => {
     FriendVideo = (
       <video
         playsInline
-        muted
+        muted={friendAudio ? false : true}
         ref={friendVideo}
         autoPlay
         style={{ maxWidth: "100%" }}
@@ -204,30 +209,44 @@ const App = () => {
   };
 
   const sendMessage = () => {
-    conn.send({ type: "message", message: txtMessage });
-    setMessages((messages) => [
-      ...messages,
-      { message: txtMessage, owner: true },
-    ]);
-    setTxtMessage("");
+    if (txtMessage) {
+      conn.send({ type: "message", message: txtMessage });
+      setMessages((messages) => [
+        ...messages,
+        { message: txtMessage, owner: true },
+      ]);
+      setTxtMessage("");
+    }
+    // console.log(txtMessage);
   };
 
   const sendFile = () => {
     const file = files[0];
 
-    if (file.size <= 5242880) {
-      const blob = new Blob(files, { type: file.type });
+    try {
+      if (file.size >= 5242880) {
+        const blob = new Blob(files, { type: file.type });
 
-      conn.send({
-        type: "file",
-        file: blob,
-        filename: file.name,
-        filetype: file.type,
-        size: file.size,
-      });
-    } else {
-      alert("The file is larger than 5 MB.");
+        conn.send({
+          type: "file",
+          file: blob,
+          filename: file.name,
+          filetype: file.type,
+          size: file.size,
+        });
+      } else {
+        alert("The file is less than 5 MB.");
+      }
+      setFiles("");
+    } catch (err) {
+      alert(err);
+      setFiles("");
     }
+  };
+
+  const toggleMyVoid = () => {
+    setMyAudio(myAudio ? false : true);
+    conn.send({ type: "audio", state: myAudio });
   };
 
   return (
@@ -235,15 +254,41 @@ const App = () => {
       <Container>
         <Row className="mt-2">
           <Col md="6">
-            <Alert style={{ marginBottom: "0" }}>
-              My Video | Peer is {myID}
+            <Alert
+              style={{
+                marginBottom: "0",
+                display: "flex",
+                justifyContent: "space-between",
+              }}
+            >
+              <div>My Video | Peer is {myID}</div>
+              <div>
+                <i
+                  className={myAudio ? "bi bi-mic-mute-fill" : "bi bi-mic-fill"}
+                  onClick={toggleMyVoid}
+                ></i>
+              </div>
             </Alert>
             {MyVideo}
           </Col>
 
           <Col>
-            <Alert theme="secondary" style={{ marginBottom: "0" }}>
-              Friend Video {friendID ? `| Peer is ${friendID}` : ""}
+            <Alert
+              theme="secondary"
+              style={{
+                marginBottom: "0",
+                display: "flex",
+                justifyContent: "space-between",
+              }}
+            >
+              <div>Friend Video {friendID ? `| Peer is ${friendID}` : ""}</div>
+              <div>
+                <i
+                  className={
+                    !friendAudio ? "bi bi-mic-mute-fill" : "bi bi-mic-fill"
+                  }
+                ></i>
+              </div>
             </Alert>
             {FriendVideo}
           </Col>
