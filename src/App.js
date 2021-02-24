@@ -39,7 +39,6 @@ const App = () => {
   let [stateCollapseChat, setStateCollapseChat] = useState(false);
   let [stateCollapseFile, setStateCollapseFile] = useState(false);
 
-  const [myAudio, setMyAudio] = useState(false);
   const [friendAudio, setFriendAudio] = useState(false);
 
   const myVideo = useRef();
@@ -72,7 +71,6 @@ const App = () => {
         if (data.type === "id") setFriendID(data.id);
         else if (data.type === "message") onReceivedMessage(data);
         else if (data.type === "file") onReceivedFile(data);
-        else if (data.type === "audio") setFriendAudio(data.state);
       });
     });
 
@@ -108,7 +106,6 @@ const App = () => {
     conn.on("data", (data) => {
       if (data.type === "message") onReceivedMessage(data);
       else if (data.type === "file") onReceivedFile(data);
-      else if (data.type === "audio") setFriendAudio(data.state);
     });
 
     peer.on("error", (err) => {
@@ -173,7 +170,7 @@ const App = () => {
     FriendVideo = (
       <video
         playsInline
-        muted={friendAudio ? false : true}
+        muted={friendAudio ? true : false}
         ref={friendVideo}
         autoPlay
         style={{ maxWidth: "100%" }}
@@ -244,9 +241,8 @@ const App = () => {
     }
   };
 
-  const toggleMyVoid = () => {
-    setMyAudio(myAudio ? false : true);
-    conn.send({ type: "audio", state: myAudio });
+  const toggleFriendVoid = () => {
+    setFriendAudio(friendAudio ? false : true);
   };
 
   return (
@@ -256,18 +252,10 @@ const App = () => {
           <Col md="6">
             <Alert
               style={{
-                marginBottom: "0",
-                display: "flex",
-                justifyContent: "space-between",
+                marginBottom: "0"
               }}
             >
-              <div>My Video | Peer is {myID}</div>
-              <div>
-                <i
-                  className={myAudio ? "bi bi-mic-mute-fill" : "bi bi-mic-fill"}
-                  onClick={toggleMyVoid}
-                ></i>
-              </div>
+              My Video | Peer is {myID}
             </Alert>
             {MyVideo}
           </Col>
@@ -284,9 +272,11 @@ const App = () => {
               <div>Friend Video {friendID ? `| Peer is ${friendID}` : ""}</div>
               <div>
                 <i
+                  style={{cursor:"pointer"}}
                   className={
-                    !friendAudio ? "bi bi-mic-mute-fill" : "bi bi-mic-fill"
+                    friendAudio ? "bi bi-volume-mute-fill" : "bi bi-volume-up-fill"
                   }
+                  onClick={toggleFriendVoid}
                 ></i>
               </div>
             </Alert>
