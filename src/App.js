@@ -159,7 +159,7 @@ const App = () => {
     MyVideo = (
       <video
         playsInline
-        muted={myAudio ? true : false}
+        muted
         ref={myVideo}
         autoPlay
         style={{ maxWidth: "100%" }}
